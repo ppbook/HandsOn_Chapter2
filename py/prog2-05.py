@@ -1,4 +1,5 @@
-# プログラム2.5
+# -*- coding: utf-8 -*-
+# prog-2-05.py
 
 import pandas as pd
 import numpy as np
@@ -30,7 +31,6 @@ import collections as colle
 
 # データの準備
 def prepare():
-    #!kaggle datasets download -d mhdzahier/travel-insurance
     get_ipython().system('unzip travel-insurance.zip')
 
 # エンティティ埋め込みクラス
@@ -58,8 +58,9 @@ class EntityEmbedder:
             embed = Embedding(input_dim=input_dim, 
                               output_dim=emb_dim, 
                               input_length=None, 
-                              name='emb{}'.format(i+1))(input_c)
-            output = Reshape(target_shape=(emb_dim,))(embed)
+                       name='emb{}'.format(i+1))(input_c)
+            output = Reshape(\
+                           target_shape=(emb_dim,))(embed)
             inputs.append(input_c) 
             embeds.append(output)
         # 埋め込み層の出力を連結する
@@ -74,27 +75,26 @@ class EntityEmbedder:
         out = Activation('softmax')(out)
         self.model = Model(inputs=inputs, outputs=out)
         self.model.compile(optimizer=self.optimizer, 
-                           loss=self.loss, metrics=['accuracy'])
+                         loss=self.loss,
+                        metrics=['accuracy'])
         self.model.summary()
 
     # 学習を行うメソッド（入力ベクトルは特徴量の数だけある）
     def fit(self, X, y, epochs=30, shuffle=True, batch_size=5):
-        self.model.fit(X, y, 
-                       epochs = epochs, shuffle=shuffle, 
-                       batch_size=batch_size, verbose=1)
+        self.model.fit( X, y, 
+            epochs = epochs, shuffle=shuffle, batch_size=batch_size, verbose=1)
         # 学習済みネットワークの重みを格納
         self.weights = self.model.get_weights()
         # 埋め込み層の出力を連結したベクトルを取得するための
         # メソッドを定義する
-        inputs = [self.model.get_layer('in%d' %                  (i+1)).input for i                  in range(len(self.dims))] 
+        inputs = [self.model.get_layer('in%d' % (i+1)).input for i in range(len(self.dims))] 
         # 埋め込み層からの出力を連結する層の出力を取得
-        self.get_hidden_out = Model(inputs=self.model.inputs, 
-                                    outputs=self.model.get_layer('conc_layer').output)
+        self.get_hidden_out = Model(inputs=self.model.inputs, outputs=self.model.get_layer('conc_layer').output)
 
     # 順序エンコーディングベクトルovから
     # エンティティ埋め込みベクトルを取得して返す
     def get_vector(self, ov):
-        vec = self.get_hidden_out(ov)#[0]
+        vec = self.get_hidden_out(ov)
         return vec
 
     # 特徴量（列）番号(fid)とカテゴリーID(cid)を渡すと、
@@ -147,7 +147,7 @@ def ordinal_encoding(df, features, lim, y, labels, encoder):
     newX = np.array([])
     # ラベルエンコーディングのクラスインスタンスを生成
     if encoder == None:
-        encoder = cate_enc.OrdinalEncoder(cols=features,            handle_unknown='value', handle_missing='value')
+        encoder = cate_enc.OrdinalEncoder(cols=features, handle_unknown='value', handle_missing='value')
         df_enc = encoder.fit_transform(df)
     else:
         df_enc = encoder.fit_transform(df)
@@ -180,12 +180,13 @@ def conv_form(X, input_dims):
     nX = []
     for i,id in enumerate(input_dims):
         x = np.asarray(X[:,i], dtype=np.int32)
-        x = np.asarray([j for j in x],                    dtype=np.int32).reshape((len(x),1))
+        x = np.asarray([j for j in x],\
+                    dtype=np.int32).reshape((len(x),1))
         nX.append(x)
     return nX
 
 # エンティティ埋め込みの学習
-def convertByEntityEmbedding(X_train, y_train,               X_test, y_test, labels, input_dims):
+def convertByEntityEmbedding(X_train, y_train, X_test, y_test, labels, input_dims):
     y_train = to_categorical(y_train, num_classes=len(labels))
     X_train = np.array(X_train)
     X_train = conv_form(X_train, input_dims)
@@ -199,8 +200,8 @@ def convertByEntityEmbedding(X_train, y_train,               X_test, y_test, lab
         emb_dims.append(2)
     output_dim = len(labels)
     ee = EntityEmbedder(input_dims, emb_dims, output_dim)
-    # epochs = 3 で学習
-    ee.fit(X_train, y_train, epochs=3)
+    # epochs = 7 で学習
+    ee.fit(X_train, y_train, epochs=7)
     # 学習したモデルから、埋め込みベクトルを取得する
     x_trainvect = ee.get_vector(X_train)
     x_testvect = ee.get_vector(X_test)
@@ -221,9 +222,9 @@ def predict_by_SVM(x_trainvect, x_testvect, y_train, y_test, target_names):
     print(classification_report(y_test_new, y_pred,target_names=target_names))
 
 # SVMによる評価(エンティティ埋め込み無し)
-def predict_by_SVM_withoutEE(X_train, X_test,                         y_train, y_test, target_names):
+def predict_by_SVM_withoutEE(X_train, X_test, y_train, y_test, target_names):
     y_train_new, y_test_new = [], []
-    X_train = np.reshape(X_train, (len(X_train),                         len(X_train[0])))
+    X_train = np.reshape(X_train, (len(X_train), len(X_train[0])))
     y_train = np.reshape(y_train, (len(y_train) ))
     X_test = np.reshape(X_test, (len(X_test), len(X_test[0])))
     y_test = np.reshape(y_test, (len(y_test) ))
@@ -241,41 +242,45 @@ def makeGraph(data, texts, cate):
         texts = texts[p[:20]]
     for (dim1,dim2,label) in zip(data[:,0], data[:,1], texts):
         plt.plot(dim1, dim2, '.' )
-    ptxt = [plt.text(x, y, lb, ha='center', va='center')             for x,y,lb in zip(data[:,0], data[:,1], texts)]
+    ptxt = [plt.text(x, y, lb, ha='center', va='center') for x,y,lb in zip(data[:,0], data[:,1], texts)]
     adjust_text(ptxt, arrowprops=dict(arrowstyle='->', color='blue'))
     cate = re.sub(r'\s+', '_', cate)
     plt.title('2D plot of feature: {}'.format(cate))
     plt.savefig('./data-fig_{}.png'.format(cate), dpi=400)
     plt.show()
-
 def main():
     prepare()
     df, y, lim, labels, features, target_names = preprocess()
     # ラベルエンコーディングしたベクトル形式に変換
-    X_train, X_test, y_train, y_test =             train_test_split(df.loc[:,features].values, 
-                             y, train_size=0.9, random_state=1)
+    X_train, X_test, y_train, y_test = train_test_split(
+    					df.loc[:,features].values, y, train_size=0.9, random_state=10)
     df_train = pd.DataFrame(X_train, columns=features)
     cc = [0, 0]
     for yv in y_train:
         cc[yv] += 1
     lim_train = np.min(cc)
-    X_train, y_train, input_dims_train, enc =         ordinal_encoding(df_train, features, lim_train, y_train, labels, None)
+    X_train, y_train, input_dims_train, enc = ordinal_encoding(
+                                        df_train, features, lim_train, y_train, labels, None)
     df_test = pd.DataFrame(X_test, columns=features)
     cc = [0, 0]
     for yv in y_test:
         cc[yv] += 1
     lim_test = np.min(cc)
-    X_test, y_test, input_dims, _ =         ordinal_encoding(df_test, features, lim_test, y_test, labels, enc)
+    X_test, y_test, input_dims, _ = ordinal_encoding(
+                                     df_test, features, 
+                                     lim_test, y_test, labels, enc)
     
     # エンティティ埋め込み無しで、SVMによる予測
-    predict_by_SVM_withoutEE(X_train, X_test, y_train, y_test, target_names)
+    predict_by_SVM_withoutEE(X_train, X_test, \
+                             y_train, y_test, target_names)
     # カテゴリ特徴量をラベルエンコーディングしたデータを
     # エンティティ埋め込みベクトルに変換するために
     # 教師あり学習を行い、エンティティ埋め込みベクトルを取得
-    x_trainvect, x_testvect, y_train, y_test, ee =         convertByEntityEmbedding(X_train, y_train, 
-                                 X_test, y_test, labels, input_dims_train)
+    x_trainvect, x_testvect, y_train, y_test, ee = convertByEntityEmbedding(
+    			      X_train, y_train, X_test, y_test, labels, input_dims_train)
     # SVMで学習・予測結果の評価
-    predict_by_SVM(x_trainvect, x_testvect, y_train, y_test, target_names)
+    predict_by_SVM(x_trainvect, x_testvect,
+                   y_train, y_test, target_names)
     # 各カテゴリの埋め込みベクトルを可視化する
     for i in range(len(features)):
         veclist, texts = [], []
@@ -292,11 +297,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
-
-
-# In[ ]:
-
-
-
-

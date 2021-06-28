@@ -53,12 +53,12 @@ def main():
     # 1週間ごとの平均死者数を求める
     week_mdf = mdf.resample('W').mean()
     # 平均死者数の推移を可視化する
-    week_mdf.plot(title='Average of dead per a week', style=style)
+    week_mdf.plot(title='Average of dead per week', style=style)
     plt.savefig('avg_week_dead.png', dpi=400)
     # 1か月ごとの平均死者数を求める
     month_mdf = mdf.resample('M').mean()
     # 平均死者数の推移を可視化する
-    month_mdf.plot(title='Average of dead per a month', style=style)
+    month_mdf.plot(title='Average of dead per month', style=style)
     plt.savefig('avg_month_dead.png', dpi=400)
     # 対象とする州を絞り込む
     mdf = pd.DataFrame(ndf, 
@@ -67,15 +67,13 @@ def main():
     # 1週間ごとの最大死者数に置き換える
     week_ndf = mdf.resample('W').max()
     # 最大死者数の推移を可視化する
-    week_ndf.plot(title='Maximum of dead per a week', style=style)
+    week_ndf.plot(title='Maximum of dead per week', style=style)
     plt.savefig('max_week_dead.png', dpi=400)
     # 1か月ごとの最大死者数に置き換える
     month_ndf = mdf.resample('M').max()
     # 最大死者数の推移を可視化する
-    month_ndf.plot(title='Maximum of dead per a month', style=style)
+    month_ndf.plot(title='Maximum of dead per month', style=style)
     plt.savefig('max_month_dead.png', dpi=400)
 
 if __name__ == '__main__':
     main()
-    
-
